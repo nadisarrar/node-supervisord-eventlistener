@@ -1,16 +1,16 @@
-var listener = require("./index");
+var listener = require('./index');
 
 listener.on('event', function(eventName, headers, data){
-	process.stderr.write("Event: " + eventName + "\n");
+	process.stderr.write('Event: ' + eventName + '\n');
 	for(a in headers) {
-		process.stderr.write( a + ": " + headers[a] + "\n");
+		process.stderr.write( a + ': ' + headers[a] + '\n');
 	}
-	if(data !== "") {
+	if(data !== '') {
 		for(a in data) {
-			process.stderr.write( a + ": " + data[a] + "\n");
+			process.stderr.write( a + ': ' + data[a] + '\n');
 		}
 	}
-	process.stderr.write("\n\n");
+	process.stderr.write('\n\n');
 });
 
 listener.listen(process.stdin, process.stdout);

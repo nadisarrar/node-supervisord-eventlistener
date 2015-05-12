@@ -1,5 +1,6 @@
 /* Documentation for Supervisord's event listener protocol can be found
 here: http://supervisord.org/events.html */
+'use strict';
 
 var EventEmitter = require('events').EventEmitter,
 	util = require('util');
@@ -15,8 +16,8 @@ util.inherits(Listener, EventEmitter);
 */
 function splitData(line) {
 	var vals = {};
-	line.split(" ").forEach(function(kvp){
-		var data = kvp.split(":");
+	line.split(' ').forEach(function(kvp){
+		var data = kvp.split(':');
 		vals[data[0]] = data[1];
 	});
 	return vals;
@@ -28,14 +29,14 @@ Listener.prototype.headersReceived = function(line) {
 	return parseInt(this.headers.len, 10);
 };
 
-/* Emits "event" with the event name, headers, and payload. Then, we tell
+/* Emits 'event' with the event name, headers, and payload. Then, we tell
 Supervisord that we are ready to receive more events. */
 Listener.prototype.payloadReceived = function(payload, stdout) {
 	if(this.headers && this.headers.eventname) {
-		stdout.write("RESULT 2\nOK");
-		this.emit("event", this.headers.eventname, this.headers, payload);
+		stdout.write('RESULT 2\nOK');
+		this.emit('event', this.headers.eventname, this.headers, payload);
 		this.emit(this.headers.eventname, this.headers, payload);
-		stdout.write("READY\n");
+		stdout.write('READY\n');
 	}
 };
 
@@ -43,7 +44,7 @@ Listener.prototype.payloadReceived = function(payload, stdout) {
 Listener.prototype.listen = function(stdin, stdout) {
 	//Set initial state
 	var self = this,
-		data = "",
+		data = '',
 		payloadSize;
 	//If I'm not waiting for headers, I'm waiting for the payload
 	self.waitingForHeaders = true;
@@ -53,15 +54,15 @@ Listener.prototype.listen = function(stdin, stdout) {
 	stdin.on('data', function(str) {
 		data += str;
 		//Parse headers
-		if(self.waitingForHeaders === true && str.indexOf("\n") !== -1) {
+		if(self.waitingForHeaders === true && str.indexOf('\n') !== -1) {
 			//We now have the headers
-			var br = data.indexOf("\n"),
+			var br = data.indexOf('\n'),
 				headers = data.substring(0, br),
 				payloadSize = self.headersReceived(headers);
-				//ignore "\n" and put remainder back into `data`
+				//ignore '\n' and put remainder back into `data`
 				data = data.substr(br + 1);
 			if(payloadSize == 0) {
-				//No payload; go ahead and emit "event"
+				//No payload; go ahead and emit 'event'
 				self.payloadReceived(null, stdout);
 				//self.waitingForHeaders = true;
 				//wait for next header...
@@ -76,13 +77,13 @@ Listener.prototype.listen = function(stdin, stdout) {
 			var payload = data.substr(0, payloadSize);
 			//put the remainder back into `data`
 			data = data.substr(payloadSize);
-			//Parse payload and emit "event"
+			//Parse payload and emit 'event'
 			self.payloadReceived(splitData(payload), stdout);
 			self.waitingForHeaders = true;
 		}
 	});
 	//Tell Supervisord that I'm ready to receive events
-	stdout.write("READY\n");
+	stdout.write('READY\n');
 };
 
 module.exports = new Listener();
