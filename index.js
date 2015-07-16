@@ -16,6 +16,12 @@ util.inherits(Listener, EventEmitter);
 */
 function splitData(line) {
 	var vals = {};
+	var sep = line.indexOf('\n');
+	if (sep !== -1)
+	{
+		vals.data = line.substring(sep + 1);
+		line = line.substring(0, sep);
+	}
 	line.split(' ').forEach(function(kvp){
 		var data = kvp.split(':');
 		vals[data[0]] = data[1];
